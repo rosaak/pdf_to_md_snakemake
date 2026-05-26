@@ -1,6 +1,6 @@
 # PDF → Markdown Snakemake Pipeline
 
-Converts a folder of PDF files to Markdown using [Docling](https://github.com/DS4SD/docling), extracts images, and consolidates everything into a clean `images/` directory.
+Converts a folder of PDF files to Markdown using [Docling](https://github.com/DS4SD/docling), extracts images, and consolidates everything into a single `images/` directory.
 
 ## What it does
 
@@ -8,73 +8,70 @@ Converts a folder of PDF files to Markdown using [Docling](https://github.com/DS
 2. **Rewrite** — image references inside each `.md` are rewritten from `<basename>_artifacts/` to `images/`
 3. **Collect** — all `.png` files are moved into a single `images/` directory and the now-empty `*_artifacts/` dirs are removed
 
-## Setup 01 
+## Setup
 
 Requires Python 3.11+ and [uv](https://github.com/astral-sh/uv).
+
+**Option A — install script** (installs globally, adds `pdf2md-sm` to PATH):
+
+```bash
+bash install.sh
+```
+
+**Option B — local venv**:
 
 ```bash
 uv venv .venv && source .venv/bin/activate
 uv sync
 ```
 
-Or 
-
-Run `install.sh` 
-
-
 ## Usage
 
-### If installed via install.sh script
+### With install.sh
 
 ```bash
-# check if the installation is correct
+# verify installation
 which pdf2md-sm
 
-# dry run to preview the job graph
+# dry run / visualize
 pdf2md-sm -n --printshellcmds
 pdf2md-sm --dag | dot -Tpng > dag.png && open dag.png
 pdf2md-sm --report report.html && open report.html
 
-# run from anywhere 
+# run from any directory containing PDFs
 pdf2md-sm
-pdf2md-sm convert_pdf_to_md
 pdf2md-sm --cores 4
 
-
+# convert only (skip path rewriting and image consolidation)
+pdf2md-sm convert_pdf_to_md
 ```
 
-
-### If not used install.sh 
+### Without install.sh
 
 Place your `.pdf` files in the working directory, then:
 
 ```bash
-# dry-run to preview the job graph
+# dry run
 snakemake -n
 
-# run (adjust --cores to taste)
+# full pipeline
 snakemake --cores 4
 
-
-# run converts the pdfs to md and not cleanup afterwords
-snakemake --cores 4 convert_only
-
+# convert only (no cleanup)
+snakemake --cores 4 convert_pdf_to_md
 ```
-
-
-
 
 ## Output
 
 ```
 .
-├── APBio-Chap01.md                # converted markdown
-├── APBio-Chap01.md
+├── APBio-Chap01.md        # converted markdown
+├── APBio-Chap02.md
 ├── ...
-├── images/                        # all extracted PNGs
+├── images/                # all extracted PNGs
 │   ├── image_000000_5564e2....png
 │   └── ...
-└── logs/                          # per-PDF docling logs
+└── logs/                  # per-PDF Docling logs
     ├── APBio-Chap01.docling.log
     └── ...
 ```
@@ -87,7 +84,7 @@ Image references inside each `.md` look like:
 
 ## Notes
 
-- **Apple Silicon** — the pipeline forces `AcceleratorDevice.CPU` to avoid a PyTorch MPS `float64` crash in the Docling layout model. This has no meaningful speed impact for typical document sizes.
+- **Apple Silicon** — the pipeline forces `AcceleratorDevice.CPU` to avoid a PyTorch MPS `float64` crash in the Docling layout model. No meaningful speed impact for typical document sizes.
 - **Duplicate image names** — if two PDFs produce a PNG with the same filename, the second is renamed `<stem>__<source_dir>.png` rather than silently overwriting the first.
 - **Partial failures** — if Docling fails on individual pages it logs warnings but still writes the `.md`; check `logs/` for details.
 - **Re-running** — Snakemake tracks which `.md` files already exist and skips completed jobs. To force a full re-run: `snakemake --cores 4 --forceall`

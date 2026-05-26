@@ -6,10 +6,11 @@ from pathlib import Path
 
 # ── Step 0 : sanitize PDF filenames before DAG is built ──────────────────────
 
-for f in Path(".").glob("*.PDF"):
-    renamed = f.with_suffix(".pdf")
-    print(f"Normalizing extension: {f.name!r} → {renamed.name!r}")
-    f.rename(renamed)
+for f in Path(".").iterdir():
+    if f.suffix.lower() == ".pdf" and f.suffix != ".pdf":
+        renamed = f.with_suffix(".pdf")
+        print(f"Normalizing extension: {f.name!r} → {renamed.name!r}")
+        f.rename(renamed)
 
 def sanitize(name: str) -> str:
     # replace anything that's not alphanumeric, dash, underscore, or dot

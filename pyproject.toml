@@ -1,0 +1,9 @@
+# pyproject.toml
+[project]
+name = "pdf_to_md_snakemake"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "docling[asr,vlm,easyocr,tesserocr,ocrmac,htmlrender,rapidocr]",
+    "snakemake",
+]

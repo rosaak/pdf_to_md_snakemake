@@ -4,6 +4,17 @@ import os
 import shutil
 from pathlib import Path
 
+# ── Step 0 : sanitize PDF filenames before DAG is built ──────────────────────
+def sanitize(name: str) -> str:
+    # replace anything that's not alphanumeric, dash, underscore, or dot
+    return re.sub(r"[^\w\-.]", "_", name)
+
+for pdf in Path(".").glob("*.pdf"):
+    clean = sanitize(pdf.stem) + ".pdf"
+    if clean != pdf.name:
+        print(f"Renaming: {pdf.name!r} → {clean!r}")
+        pdf.rename(clean)
+
 # ── Discover PDFs ─────────────────────────────────────────────────────────────
 PDFS      = glob.glob("*.pdf")
 BASENAMES = [os.path.splitext(f)[0] for f in PDFS]
